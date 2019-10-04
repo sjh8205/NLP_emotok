@@ -1,6 +1,6 @@
 import os
 
-filename_path = os.path.dirname(os.getcwd())+'/roja-emotok/src/entity_csv/entity_chitchat.csv'
+filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/entity_csv/entity_chitchat.csv'
 entity_file = open(filename_path,'r', encoding='utf-8')
 entity_list = entity_file.readlines()
 

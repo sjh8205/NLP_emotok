@@ -5,7 +5,7 @@ import os,random
 import csv
 
 #relation 정보
-filename_path = os.path.dirname(os.getcwd())+'/roja-emotok/src/sia/relation/relation_info.csv'
+filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/sia/relation/relation_info.csv'
 f = open(filename_path, 'r')
 relation_list = f.readlines()
 

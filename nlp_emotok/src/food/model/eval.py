@@ -134,7 +134,7 @@ class eval(object):
         model = 'VHRED'
         morph = False
         pos = True
-        checkpoint = '/usr/local/roja-emotok/src/food/checkpoint/dasom2/'+model+'/pos-1000-100-80-0.0001/80.pkl'
+        checkpoint = '/usr/local/roja-emotok/nlp_emotok/src/food/checkpoint/dasom2/'+model+'/pos-1000-100-80-0.0001/80.pkl'
         #self.config = get_config(model=model, morph=morph, pos=pos, checkpoint=checkpoint)
         self.config = Config(model=model, pos=pos, checkpoint=checkpoint)
         self.vocab = Vocab()

@@ -1,8 +1,8 @@
 import pymysql, os
 from .. import pyjosa
 
-filename_path = os.path.dirname(os.getcwd())+'/roja-emotok/src/rb_m/dictionary/ner_list.csv'
-filename_path_1 = os.path.dirname(os.getcwd())+'/roja-emotok/src/rb_m/dictionary/ner_list_1.csv'
+filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/rb_m/dictionary/ner_list.csv'
+filename_path_1 = os.path.dirname(os.getcwd())+'/nlp_emotok/src/rb_m/dictionary/ner_list_1.csv'
 f = open(filename_path,'r',encoding='utf-8')
 f1 = open(filename_path_1,'r',encoding='utf-8')
 ner_list = f.readlines()

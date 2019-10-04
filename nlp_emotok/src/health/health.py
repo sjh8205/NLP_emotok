@@ -4,7 +4,7 @@ from ..sia import relation_query
 from . import health_rnn
 import os, datetime, random
 
-filename_path = os.path.dirname(os.getcwd())+'/roja-emotok/src/entity_csv/illness_entity.csv'
+filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/entity_csv/illness_entity.csv'
 f = open(filename_path,'r',encoding='utf-8')
 illness_list = f.readlines()
 

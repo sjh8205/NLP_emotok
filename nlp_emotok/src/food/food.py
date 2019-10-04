@@ -4,7 +4,7 @@ from .. import pyjosa
 from ..sia import relation_query
 import os, datetime
 
-filename_path = os.path.dirname(os.getcwd())+'/roja-emotok/src/entity_csv/food_entity.csv'
+filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/entity_csv/food_entity.csv'
 f = open(filename_path,'r',encoding='utf-8')
 food_list = f.readlines()
 
