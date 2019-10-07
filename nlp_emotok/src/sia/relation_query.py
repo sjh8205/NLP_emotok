@@ -144,7 +144,10 @@ def match_answer(tx, entity, relation):
         if relation == 'has_lifetime_info':
             birth = record['ee']['birth']
             death = record['ee']['death']
-            answer = birth + "년에서 " + death + "년까지 살았었어요."
+            if checkTrait(entity[-1]):
+                answer = entity + "은 " + birth + "년에서 " + death + "년까지 살았었어요."
+            else:
+                answer = entity + "는 " + birth + "년에서 " + death + "년까지 살았었어요."
         else:
             answer = record['ee']['hint']
     return answer
@@ -247,3 +250,6 @@ def match_next(tx, history, entity):
                 return entity, relation
         else:
             return entity, relation
+
+def checkTrait(c):
+    return (int((ord(c) - 0xAC00) % 28) != 0)
