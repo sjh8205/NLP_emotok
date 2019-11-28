@@ -12,27 +12,34 @@ def get_data(input_json):
 	_json = dict()	
 
 	if triple_dict['result'] == 1:
-		hint = relation_query.get_sia_data(triple_dict)
-		if hint == 0:
+		sia_json = relation_query.get_sia_data(triple_dict)
+		if sia_json['hint'] == 0:
 			response = ner_module.get_ner_hint(input_json)
+			_json['data'] = response[0] + ', ' + response[1]
+			response = response[2]
+			model = "NER"
 			if response == 0:
 				response = chitchat_rnn.get_response(input_json['query'])
+				model = "EMOTOK"
 			_json['hint'] = response
-			sia = False
 		else:
-			_json['hint'] = hint
-			_json['entity'] = triple_dict['entity']
-			_json['relation'] = triple_dict['relation']
-			sia = True
+			_json['hint'] = sia_json['hint']
+			_json['data'] = sia_json['data']
+			model = "SIA"
 	else:
 		#NER 활용 모듈
 		response = ner_module.get_ner_hint(input_json)
-		
+		model = "NER"
+
 		if response == 0:
 			response = chitchat_rnn.get_response(input_json['query'])
-		_json['hint'] = response
-		sia = False
-
-	return sia, _json
+			_json['hint'] = response
+			_json['model'] = "EMOTOK"
+			return _json
+		else:
+			_json['hint'] = response[2]
+			_json['data'] = response[0] + ', ' + response[1]
+			_json['model'] = "NER"
+			return _json
 
 

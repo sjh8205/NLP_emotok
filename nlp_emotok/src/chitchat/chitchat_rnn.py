@@ -1,62 +1,32 @@
 import os, random
 from .model.eval import eval
 from konlpy.tag import Mecab
+from fuzzywuzzy import fuzz
 
 chat_response = eval()
-
-def get_json(query):
-	non_response_list = ['한 번만 더 말씀해 주시겠어요','바보얌','잘 알아듣지 못했어요']
-
-	response = get_response(query)
-	
-	for non_response in non_response_list:
-		if non_response == response:
-			serviceName = "human_intelligence"
-			actionName = "human_intelligence"
-		else:
-			serviceName = "Chitchat"
-			actionName = "Chitchat_speech"
-
-	return_json = {
-	"result": 0,
-	"msg": "success",
-	"data":{
-		"status": {
-				"errorType": "success",
-				"code" : 0
-		},
-		"result": {
-			"hint": response,
-			"formatType": "text",
-			"data":[
-				{
-					"serviceName": serviceName,
-					"actionName": actionName
-				}
-			]
-		},
-		"query":query,
-		"semantic":{
-			"outputContext": {
-				"service": "",
-				"context": ""
-			},
-			"service": serviceName,
-			"params": None,
-			"action": actionName
-		}
-
-		}
-
-	}
-	
-	return return_json
+answer_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/chitchat/answer/chitchat_answer.csv'
+answer_file = open(answer_path,'r', encoding='utf-8')
+answer_list = answer_file.readlines()
 
 def get_response(query):
 
 	conversations = []
 	conversations.append(query)
 	response = chat_response.chat_generate(conversations)
+
+	response = text_refine(response)
+
 	return response
 
+def text_refine(_response):
+    max_ratio = 0
+    response = dict()
 
+    for answer in answer_list:
+        answer = answer.split(',')
+        ratio = fuzz.ratio(answer[0], _response)
+        if max_ratio < ratio:
+            max_ratio = ratio
+            result = answer
+
+    return result

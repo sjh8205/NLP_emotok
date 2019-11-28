@@ -24,15 +24,15 @@ def get_json(input_json):
 	
 	#도메인이 있을 때 (다솜 서비스)
 	if input_json['domain'] == "chitchat":
-		sia, _json = chitchat.get_data(input_json)
+		_json = chitchat.get_data(input_json)
 	elif input_json['domain'] == "food":
-		sia, _json = food.get_data(input_json)
+		_json = food.get_data(input_json)
 	elif input_json['domain'] == "health":
-		sia, _json = health.get_data(input_json)
+		_json = health.get_data(input_json)
 	elif input_json['domain'] == "culture":
-		sia, _json = culture.get_data(input_json)
+		_json = culture.get_data(input_json)
 
-	_json['sia'] = sia
+	#_json['sia'] = str(sia)
 
 	return _json	
 

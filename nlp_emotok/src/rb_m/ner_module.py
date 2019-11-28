@@ -10,12 +10,12 @@ ner_1_list = f1.readlines()
 
 def get_ner_hint(input_json):
 	ner_tag = get_ner_tag(input_json)
-
 	if ner_tag == 0:
 		return 0
 	else:
 		hint = get_template(ner_tag)
-		return hint
+		ner_tag.append(hint)
+		return ner_tag
 
 def get_ner_tag(input_json):
 	query = input_json['query']
@@ -30,7 +30,7 @@ def get_ner_tag(input_json):
 	for _nouns in input_json['nouns']:
 		for _ner_1 in ner_1_list:
 			_ner_1 = _ner_1.split(',')
-			if _ner_1[0] in _nouns:
+			if _ner_1[0] == _nouns:
 				_ner_1[1] = _ner_1[1].replace("\n","")
 				return _ner_1
 

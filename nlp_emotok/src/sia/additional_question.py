@@ -1,6 +1,7 @@
-import relation_query
+import random
+from src.sia import relation_query
 
-def random(req):
+def random():
     _json = dict()
     entity, relation = relation_query.get_random_entity_relation()
     _json['entity'] = entity

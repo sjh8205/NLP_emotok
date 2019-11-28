@@ -25,21 +25,24 @@ def get_data(input_json):
 			entity_list.append(food)
 
 	_json = dict()
+	return_json = dict()
 	#음식명 없을 때
 	if len(entity_list) == 0:
 		if "제철" in query:
 			_json['relation'] = "has_season_food"
 			_json['entity'] = get_season(input_json['input_list'])
-			season_food = relation_query.get_sia_data(_json)
-			if season_food == 0:
+			sia_json = relation_query.get_sia_data(_json)
+			
+			if sia_json['hint'] == 0:
 				response = food_rnn.get_response(input_json['query'])
-				sia = False
-				_json['hint'] = response
+				model = "EMOTK"
+				return_json['hint'] = response
 			else:
-				hint = pyjosa.replace_josa(_json['entity'] + " 제철음식으로는 " + season_food + "(이)가 있어요!")
-				_json['hint'] = hint
-				sia = True
-			return sia, _json
+				#hint = pyjosa.replace_josa(_json['entity'] + " 제철음식으로는 " + sia_json['hint'] + "(이)가 있어요!")
+				return_json['hint'] = sia_json['hint']
+				return_json['data'] = sia_json['data']
+				return_json['model'] = "SIA"
+			return return_json
 			
 	#음식명이 있을때
 	else:
@@ -51,20 +54,21 @@ def get_data(input_json):
 				if morph[0] == prop:
 					_json['entity'] = entity
 					_json['relation'] = property_dic[prop]
-					hint = relation_query.get_sia_data(_json)
-					if hint == 0:
+					sia_json = relation_query.get_sia_data(_json)
+					if sia_json['hint'] == 0:
 						response = food_rnn.get_response(input_json['query'])
-						sia = False
-						_json['hint'] = response
+						return_json['model'] = "EMOTOK"
+						return_json['hint'] = response
 					else:
-						_json['hint'] = hint
-						sia = True
-					return sia, _json
+						return_json['hint'] = sia_json['hint']
+						return_json['data'] = sia_json['data']
+						return_json['model'] = "SIA"
+					return return_json
 
 	response = food_rnn.get_response(input_json['query'])
-	sia = False
-	_json['hint'] = response
-	return sia, _json
+	return_json['model'] = "EMOTOK"
+	return_json['hint'] = response
+	return return_json
 
 def get_season(input_list):
 	season = ['봄','여름','가을','겨울','월']

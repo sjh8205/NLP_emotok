@@ -147,7 +147,7 @@ class Config(object):
             elif self.data.lower() =='dasom2':
                 self.dataset_dir = data_dir.joinpath('dasom2-morph-pkl')
         elif self.pos:
-            self.dataset_dir = data_dir.joinpath('emotok_0723_chitchat_pos_pkl')
+            self.dataset_dir = data_dir.joinpath('emotok_1126_chitchat_pos_pkl')
         else:
             self.dataset_dir = data_dict[self.data.lower()]
 
