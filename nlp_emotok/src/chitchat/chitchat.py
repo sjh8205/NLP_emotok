@@ -42,4 +42,4 @@ def get_data(input_json):
 			_json['model'] = "NER"
 			return _json
 
-
+	return _json
