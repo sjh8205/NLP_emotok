@@ -18,6 +18,26 @@ def match_node_from_entity_relation(tx, entity, relation):
         leaf_nodes.append(record['ee'])
     return nodes, leaf_nodes
 
+def get_node_from_entity(entity):
+    with driver.session() as session:
+        node = session.read_transaction(match_node_from_entity, entity)
+    return node
+
+def match_node_from_entity(tx, entity):
+    for record in tx.run("MATCH (e) WHERE e.name = \"{}\" RETURN e".format(entity)):
+        return record['e']
+"""
+def get_all_relations_from_node(node):
+    with driver.session() as session:
+        relations = session.read_transaction(match_all_relations_from_node, node)
+    return relations
+
+def match_all_relations_from_node(tx, node):
+    relations = []
+    for record in tx.run("MATCH (e)-[r]-(ee) WHERE id(e) = {} RETURN e, r, ee".format(node.id)):
+        relations.append(record['r'])
+
+"""
 #Common API
 def get_node_hint_len(node):
     if node['len'] == None:

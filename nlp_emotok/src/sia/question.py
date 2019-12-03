@@ -188,6 +188,32 @@ def succesive(req):
     return _json
 
 def answer(entity, relation):
+    #relation null process
+    if relation == None:
+        node = neo4j_query.get_node_from_entity(entity)
+
+        label = list(node.labels)[0]
+
+        if label in ["era"]:
+            relation = random.choice(["has_song_info", "has_music_info", "has_idol_era"])
+        elif label in ["GreatMan", "FOOD"]:
+            relation = "has_intro_info"
+        elif node['name'] in ["유행어"]:
+            relation = "has_popword_info"
+        elif node['name'] in ["영화"]:
+            relation = "has_movie_info"
+        elif label in ["flower"]:
+            relation = "has_flower_hint"
+        elif label in ["illness"]:
+            relation = "has_good_food"
+        elif label in ["tour"]:
+            relation = "has_tour_info"
+        elif node['name'] in ["드라마"]:
+            relation = "has_drama_info"
+        else:
+            raise Exception("relation null process error entity:{}".format(entity))
+        
+    
     if relation == "has_idol":
         relation = "has_idol_era"
     
