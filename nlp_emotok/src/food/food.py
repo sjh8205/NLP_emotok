@@ -65,6 +65,19 @@ def get_data(input_json):
 						return_json['model'] = "SIA"
 					return return_json
 
+		_json['entity'] = entity
+		_json['relation'] = 'has_intro_info'
+		sia_json = relation_query.get_sia_data(_json)
+		if sia_json['hint'] == 0:
+			response = food_rnn.get_response(input_json['query'])
+			return_json['model'] = "EMOTOK"
+			return_json['hint'] = response
+		else:
+			return_json['hint'] = sia_json['hint']
+			return_json['data'] = sia_json['data']
+			return_json['model'] = "SIA"
+		return return_json
+
 	response = food_rnn.get_response(input_json['query'])
 	return_json['model'] = "EMOTOK"
 	return_json['hint'] = response
