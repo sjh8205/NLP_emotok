@@ -2,10 +2,31 @@ import time
 import numpy as np
 from neo4j import GraphDatabase
 
-#driver = GraphDatabase.driver("bolt://127.0.0.1:7687", auth=("neo4j", "wireless"))
-driver = GraphDatabase.driver("bolt://35.229.155.246:7000", auth=("neo4j", "1thefull322"))
+#driver = GraphDatabase.driver("bolt://35.229.155.246:7000", auth=("neo4j", "1thefull322"))
+class Singleton:
+    __instance = None
+    driver = None
+
+    @staticmethod
+    def instance():
+        if Singleton.__instance == None:
+            Singleton()
+        return Singleton.__instance
+
+    def __init__(self):
+        if Singleton.__instance != None:
+            raise Exception("This class is a singleton")
+        else:
+            Singleton.__instance = self
+
+def getDriver():
+    if Singleton.instance().driver == None:
+        Singleton.instance().driver = GraphDatabase.driver("bolt://35.229.155.246:7000", auth=("neo4j", "1thefull322"))
+    return Singleton.instance().driver
+
 
 def get_node_from_entity_relation(entity, relation):
+    driver = getDriver()
     with driver.session() as session:
         nodes, leaf_nodes = session.read_transaction(match_node_from_entity_relation, entity, relation)
     return nodes, leaf_nodes
@@ -19,6 +40,7 @@ def match_node_from_entity_relation(tx, entity, relation):
     return nodes, leaf_nodes
 
 def get_node_from_entity(entity):
+    driver = getDriver()
     with driver.session() as session:
         node = session.read_transaction(match_node_from_entity, entity)
     return node
@@ -65,6 +87,7 @@ def get_today_season_type_id():
     return ID
 
 def get_season_type_from_entity(entity):
+    driver = getDriver()    
     with driver.session() as session:
         season_type = session.read_transaction(match_season_type_from_entity, entity)
     return season_type
@@ -75,6 +98,7 @@ def match_season_type_from_entity(tx, entity):
     return node
 
 def get_node_from_id(ID):
+    driver = getDriver()    
     with driver.session() as session:
         node = session.read_transaction(match_node_from_id, ID)
     return node
@@ -85,6 +109,7 @@ def match_node_from_id(tx, ID):
     return node
 
 def get_leaf_node_from_node_relation(node, relation):
+    driver = getDriver()    
     with driver.session() as session:
         leaf_node = session.read_transaction(match_leaf_node_from_relation, node.id, relation)
     return leaf_node
@@ -95,6 +120,7 @@ def match_leaf_node_from_relation(tx, ID, relation):
     return leaf_node
 
 def get_relation_from_ids(node_id, leaf_node_id):
+    driver = getDriver()    
     with driver.session() as session:
         relation = session.read_transaction(match_relation_from_ids, node_id, leaf_node_id)
     return relation
@@ -117,6 +143,7 @@ def match_foods_from_season_id(tx, season_id):
     return foods
 
 def get_spare_entities(history):
+    driver = getDriver()    
     #Get all category
     with driver.session() as session:
         question_nodes = session.read_transaction(match_question_nodes)
@@ -155,6 +182,7 @@ def move_next_category(history):
     return (next_question_type, next_node, next_relation, next_leaf_node, next_hint, is_end, change)
 
 def get_leaf_nodes(node, relation):
+    driver = getDriver()    
     with driver.session() as session:
         leaf_nodes = session.read_transaction(match_leaf_nodes, node, relation)
     return leaf_nodes
@@ -171,6 +199,7 @@ def match_leaf_nodes(tx, node, relation):
 
 #API 1
 def get_random_entity_relation():
+    driver = getDriver()    
     with driver.session() as session:
         #Get all question types & Select one type.
         question_types = session.read_transaction(match_question_nodes)
@@ -243,6 +272,7 @@ def match_init_leaf_node(tx, node, relation):
 
 #API 2
 def get_answer(node, relation, leaf_node, hint):
+    driver = getDriver()    
     with driver.session() as session:
         answer = session.read_transaction(match_answer, node, relation, leaf_node, hint)
     return answer
@@ -424,6 +454,7 @@ def get_spare_hints(req, history, question_type, node, relation, leaf_node, yon,
         hint_id = node.id
     else:
         hint_id = leaf_node.id
+    driver = getDriver()        
     with driver.session() as session:
         hints = session.read_transaction(match_hint_from_leaf_node, hint_id)
         #hints = session.read_transaction(match_hint_from_leaf_node, leaf_node.id)
@@ -500,6 +531,7 @@ def get_spare_sibling_nodes(req, history, question_type, node, relation, leaf_no
     change = 1
 
     label = list(node.labels)[0]
+    driver = getDriver()
     with driver.session() as session:
         sibling_nodes = session.read_transaction(match_nodes_from_labels, label)
 
@@ -543,6 +575,7 @@ def get_spare_sibling_nodes(req, history, question_type, node, relation, leaf_no
     return (next_question_type, next_node, next_relation, next_leaf_node, next_hint, is_end, change)
 
 def get_specific_season_food(req, history, question_type, node, relation, leaf_node, yon, hint):
+    driver = getDriver()    
     season_type_id = req['Season_Type']
     with driver.session() as session:
         season_foods = session.read_transaction(match_foods_from_season_id, season_type_id)
@@ -565,6 +598,7 @@ def get_specific_season_food(req, history, question_type, node, relation, leaf_n
     return ret
 
 def get_other_season_food(req, history, question_type, node, relation, leaf_node, yon, hint):
+    driver = getDriver()    
     with driver.session() as session:
         seasons_ids = session.read_transaction(match_seasons_ids)
 
@@ -628,6 +662,7 @@ def match_question_type_from_entity(tx, entity):
     return question_type
 
 def get_random_entity_relation_from_entity(entity):
+    driver = getDriver()    
     with driver.session() as session:
         #Get all question types & Select one type.
         question_type = session.read_transaction(match_question_type_from_entity, entity)
@@ -661,6 +696,7 @@ def match_relations(tx, node, relation):
 
 
 def get_next_entity(history, entity):
+    driver = getDriver()
     with driver.session() as session:
         next_entity, next_relation, is_changed = session.read_transaction(match_relations, history, entity)
     return next_entity, next_relation, is_changed
@@ -703,6 +739,7 @@ def match_relations(tx, history, entity):
 """
 #OK
 def get_other_entity(history, entity):
+    driver = getDriver()    
     with driver.session() as session:
         other_type = session.read_transaction(match_other_entity, history, entity)
         other_entity, relation = session.read_transaction(match_random_entity, history, other_type)
@@ -734,6 +771,7 @@ def match_random_entity(tx, history, other_type):
 
 #OK
 def get_from_relation_to_name(entity, relation):
+    driver = getDriver()    
     with driver.session() as session:
         name = session.read_transaction(match_name, entity, relation)
     return name
@@ -744,6 +782,7 @@ def match_name(tx, entity, relation):
     return name
         
 def get_next(history, entity):
+    driver = getDriver()    
     with driver.session() as session:
         next_entity, next_relation = session.read_transaction(match_next, history, entity)
     return next_entity, next_relation
@@ -800,10 +839,8 @@ def get_question_type_from_node_relation(node, relation):
         entity = "GreatMan"
     else:
         raise Exception("Can't infer question type: {}".format(relation))
-    
+    driver = getDriver()
     with driver.session() as session:
         question_type = session.read_transaction(match_question_type_from_entity, entity)
     
     return question_type
-
-
