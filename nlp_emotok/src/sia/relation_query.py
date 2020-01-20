@@ -5,10 +5,8 @@ def get_sia_data(triple_dict):
             'entity':triple_dict['entity'],
             'relation':triple_dict['relation']
             }
-
-    #r_json = requests.post("http://172.18.0.5:5005/roja/answer",
     #r_json = requests.post("http://0.0.0.0:5005/roja/answer",
-    r_json = requests.post("http://0.0.0.0:5001/roja/answer",
+	r_json = requests.post("http://0.0.0.0:5001/roja/answer",
                 headers={'Content-Type': 'application/json; charset=utf-8'},
                 data=json.dumps(_data, ensure_ascii=False).encode('utf-8'))
 
