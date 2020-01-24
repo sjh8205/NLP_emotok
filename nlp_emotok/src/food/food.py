@@ -31,6 +31,7 @@ def get_data(input_json):
 		if "제철" in query:
 			_json['relation'] = "has_season_food"
 			_json['entity'] = get_season(input_json['input_list'])
+			_json['server'] = input_json['server']
 			sia_json = relation_query.get_sia_data(_json)
 			
 			if sia_json['hint'] == 0:
@@ -54,6 +55,7 @@ def get_data(input_json):
 				if morph[0] == prop:
 					_json['entity'] = entity
 					_json['relation'] = property_dic[prop]
+					_json['server'] = input_json['server']
 					sia_json = relation_query.get_sia_data(_json)
 					if sia_json['hint'] == 0:
 						response = food_rnn.get_response(input_json['query'])
@@ -67,6 +69,7 @@ def get_data(input_json):
 
 		_json['entity'] = entity
 		_json['relation'] = 'has_intro_info'
+		_json['server'] = input_json['server']
 		sia_json = relation_query.get_sia_data(_json)
 		if sia_json['hint'] == 0:
 			response = food_rnn.get_response(input_json['query'])

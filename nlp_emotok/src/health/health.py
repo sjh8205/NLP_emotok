@@ -5,8 +5,11 @@ from . import health_rnn
 import os, datetime, random
 
 filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/entity_csv/illness_entity.csv'
+#filename_1_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/entity_csv/illness_entity_1.csv'
 f = open(filename_path,'r',encoding='utf-8')
+#f_1 = open(filename_1_path,'r',encoding='utf-8')
 illness_list = f.readlines()
+#illness_1_list = f_1.readlines()
 
 def get_data(input_json):
 	entity_list = []
@@ -14,9 +17,16 @@ def get_data(input_json):
 	
 	#쿼리 내 질병 추출
 	for illness in illness_list:
+		#illness = illness.split()
+		#illness[1] = illness[1].replace('\n','')
 		illness = illness.replace('\n','')
 		if illness in query:
 			entity_list.append(illness)
+
+	'''
+	if len(entity_list) != 0:
+		for nouns in input_json['nouns']:
+	'''		
 
 	_json = dict()
 	return_json = dict()
@@ -31,11 +41,13 @@ def get_data(input_json):
 		for morph in input_json['input_list']:
 			if morph[0] == "예방" or morph[0] == "예방법":
 				_json['relation'] = 'has_prevention'
+				_json['server'] = input_json['server']
 				sia_json = relation_query.get_sia_data(_json)
 				#hint = pyjosa.replace_josa(entity + "(을)를 예방하기 위해 " + hint)
 				_json['hint'] = sia_json['hint']
 			elif morph[0] == "음식":
 				_json['relation'] = 'has_good_food'
+				_json['server'] = input_json['server']
 				sia_json = relation_query.get_sia_data(_json)
 				#hint = pyjosa.replace_josa(entity + "에는 " +food+ "(이)가 좋다고 해요!")
 				_json['hint'] = sia_json['hint']
@@ -43,19 +55,12 @@ def get_data(input_json):
 		if _json['hint'] == None:
 			relation = random.choice(['has_prevention','has_good_food'])
 			_json['relation'] = relation
-			if relation == 'has_prevention':
-				sia_json = relation_query.get_sia_data(_json)
-				#hint = pyjosa.replace_josa(entity + "(을)를 예방하기 위해 " + hint)
-				#_json['hint'] = sia_json['hint']
-			else:
-				sia_json = relation_query.get_sia_data(_json)
-				#hint = pyjosa.replace_josa(entity + "에는 " +food+ "(이)가 좋다고 해요!")
-				#_json['hint'] = sia_json['hint']
+			_json['server'] = input_json['server']
+			sia_json = relation_query.get_sia_data(_json)
 		
 		if sia_json['hint'] == 0:
 			response = health_rnn.get_response(input_json['query'])
 			return_json['hint'] = response
-			#sia = False
 			return_json['model'] = 'EMOTOK'
 		else:
 			return_json['hint'] = sia_json['hint']

@@ -270,7 +270,8 @@ def answer(entity, relation):
         else:
             suffix = "가 있어요"
         answer = entity + "시즌 제철음식으로는 " + leaf_node['name'] + suffix
-    elif relation in ["has_idol_era", "has_music_info", "has_song_info", "has_prevention", "has_popword_info", "has_tour_info", "has_tour_reco"]:
+    elif relation in ["has_idol_era", "has_music_info", "has_song_info", "has_prevention", "has_popword_info", "has_tour_info", "has_tour_reco",'has_movie_info',
+'has_drama_info']:
         hint = randrange(0, get_len_hint(leaf_node)) + 1
         answer = leaf_node['hint' + str(hint)]
     elif relation in ["has_lifetime_info"]:

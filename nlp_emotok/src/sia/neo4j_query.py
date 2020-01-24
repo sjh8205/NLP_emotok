@@ -1,6 +1,7 @@
 import time
 import numpy as np
 from neo4j import GraphDatabase
+import logging
 
 #driver = GraphDatabase.driver("bolt://35.229.155.246:7000", auth=("neo4j", "1thefull322"))
 class Singleton:
@@ -205,23 +206,28 @@ def get_random_entity_relation():
         question_types = session.read_transaction(match_question_nodes)
         question_type = question_types[np.random.choice(len(question_types), 1)[0]]
 
-        #Get initial node in the type.
-        node, relation = session.read_transaction(match_init_node_relation, question_type)
+        try:
+            #Get initial node in the type.
+            node, relation = session.read_transaction(match_init_node_relation, question_type)
 
-        if question_type['entity'] == 'tour':
-            leaf_node = session.read_transaction(match_init_leaf_node, node, relation)
-            maxlen = get_node_hint_len(leaf_node)
-            #hint = 'hint' + str(np.random.choice(leaf_node['len'], 1)[0] + 1)
-            hint = 'hint' + str(np.random.choice(maxlen, 1)[0] + 1)
-        elif relation == None:
-            #leaf_node = node
-            leaf_node = None
-            maxlen = get_node_hint_len(node)
-            #hint = 'hint' + str(np.random.choice(node['len'], 1)[0] + 1)
-            hint = 'hint' + str(np.random.choice(maxlen, 1)[0] + 1)
-        else:
-            leaf_node = session.read_transaction(match_init_leaf_node, node, relation)
-            hint = None
+            if question_type['entity'] == 'tour':
+                leaf_node = session.read_transaction(match_init_leaf_node, node, relation)
+                maxlen = get_node_hint_len(leaf_node)
+                #hint = 'hint' + str(np.random.choice(leaf_node['len'], 1)[0] + 1)
+                hint = 'hint' + str(np.random.choice(maxlen, 1)[0] + 1)
+            elif relation == None:
+                #leaf_node = node
+                leaf_node = None
+                maxlen = get_node_hint_len(node)
+                #hint = 'hint' + str(np.random.choice(node['len'], 1)[0] + 1)
+                hint = 'hint' + str(np.random.choice(maxlen, 1)[0] + 1)
+            else:
+                leaf_node = session.read_transaction(match_init_leaf_node, node, relation)
+                hint = None
+        except Exception as ex:
+            logging.basicConfig(filename="random.txt", filemode="a", format="%(name)s - %(levelname)s - %(message)s")
+            logging.error(node, " : ", relation, "\n", ex)
+            
         
     return question_type, node, relation, leaf_node, hint
 
@@ -833,7 +839,7 @@ def get_question_type_from_node_relation(node, relation):
             entity = "GreatMan"
     elif relation == "has_season_food":
         entity = "Season_Type"
-    elif relation == "has_idol":
+    elif relation == "has_idol_era":
         entity = "idol_era"
     elif relation == "has_lifetime_info":
         entity = "GreatMan"

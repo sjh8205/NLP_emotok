@@ -1,4 +1,4 @@
-import os
+import os, random
 
 filename_path = os.path.dirname(os.getcwd())+'/nlp_emotok/src/entity_csv/entity_chitchat.csv'
 entity_file = open(filename_path,'r', encoding='utf-8')
@@ -58,7 +58,14 @@ def tour_relation(input_json, triple_dict):
 			triple_dict['relation'] = 'has_tour_info'
 		
 	if triple_dict['relation'] == 0:
-		triple_dict['result'] = 0
+		triple_dict['relation'] = random.choice(['has_tour_reco','has_tour_info'])		
+
+	if str(triple_dict['entity']) in ['등산','산'] :
+		triple_dict['entity'] = '등산'
+	if str(triple_dict['entity']) in ['해변','바닷가','바다']:
+		triple_dict['entity'] = '해변'
+	if str(triple_dict['entity']) in ['수목원','식물원','식목원']:
+		triple_dict['entity'] = '수목원'
 	
 	return triple_dict
 
@@ -79,11 +86,11 @@ def greatman_relation(input_json,triple_dict):
 			triple_dict['relation'] = 'has_career_info'
 		elif morph in ['소개','누구']:
 			triple_dict['relation'] = 'has_intro_info'
-		elif morph in ['태어났','생년월일','생일','돌아가']:
+		elif morph in ['태어났','생년월일','생일','돌아가','출생']:
 			triple_dict['relation'] = 'has_lifetime_info'
-		
+
 	if triple_dict['relation'] == 0:
-		triple_dict['result'] = 0
-		
+		triple_dict['relation'] = 'has_intro_info'
+	
 	return triple_dict
 

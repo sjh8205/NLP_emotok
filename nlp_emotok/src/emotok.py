@@ -21,7 +21,7 @@ def get_json(input_json):
 		elif _label[0] == 3:
 			domain = "culture"
 		input_json['domain'] = domain
-	
+
 	#도메인이 있을 때 (다솜 서비스)
 	if input_json['domain'] == "chitchat":
 		_json = chitchat.get_data(input_json)

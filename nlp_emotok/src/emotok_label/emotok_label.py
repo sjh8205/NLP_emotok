@@ -56,12 +56,12 @@ def get_label(preprocessing_text):
 
 	x_raw = [preprocessing_text]
 	#가장 최근 학습데이터
-	latest_subdir = './emotok_label/runs/0729_emotok_label'
+	latest_subdir = './emotok_label/runs/0123_emotok_label'
 	#FLAGS.checkpoint_dir = latest_subdir + "/checkpoints/"
 	
 	# Map data into vocabulary
 	#vocab_path = os.path.join(FLAGS.checkpoint_dir, "..", "vocab")
-	vocab_path = '/usr/local/roja-emotok/nlp_emotok/src/emotok_label/runs/0729_emotok_label/vocab'
+	vocab_path = '/usr/local/roja-emotok/nlp_emotok/src/emotok_label/runs/0123_emotok_label/vocab'
 	vocab_processor = data_loader.restore_vocab_processor(vocab_path)
 	x_test = np.array(list(vocab_processor.transform(x_raw)))
 
@@ -69,7 +69,7 @@ def get_label(preprocessing_text):
 	# Evaluation
 	# ==================================================
 	#checkpoint_file = tf.train.latest_checkpoint(FLAGS.checkpoint_dir)
-	checkpoint_file = '/usr/local/roja-emotok/nlp_emotok/src/emotok_label/runs/0729_emotok_label/checkpoints/model-290000'
+	checkpoint_file = '/usr/local/roja-emotok/nlp_emotok/src/emotok_label/runs/0123_emotok_label/checkpoints/model-295200'
 	
 	graph = tf.Graph()
 	with graph.as_default():

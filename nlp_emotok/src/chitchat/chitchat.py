@@ -12,6 +12,7 @@ def get_data(input_json):
 	_json = dict()	
 
 	if triple_dict['result'] == 1:
+		triple_dict['server'] = input_json['server']
 		sia_json = relation_query.get_sia_data(triple_dict)
 		if sia_json['hint'] == 0:
 			response = ner_module.get_ner_hint(input_json)
