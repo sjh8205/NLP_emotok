@@ -35,9 +35,18 @@ def get_node_from_entity_relation(entity, relation):
 def match_node_from_entity_relation(tx, entity, relation):
     nodes = []
     leaf_nodes = []
-    for record in tx.run("MATCH (e)-[:{}]->(ee) WHERE e.name = \"{}\" RETURN e, ee".format(relation, entity)):
-        nodes.append(record['e'])
-        leaf_nodes.append(record['ee'])
+    # NEW : add code for "has_Datetime" case in question.answer --
+    if relation != None:
+        # MOVE --
+        for record in tx.run("MATCH (e)-[:{}]->(ee) WHERE e.name = \"{}\" RETURN e, ee".format(relation, entity)):
+            nodes.append(record['e'])
+            leaf_nodes.append(record['ee'])
+        # -- move end
+    else:
+        for record in tx.run("MATCH (e)-[]->(ee) WHERE ID(e)={} RETURN e, ee".format(entity.id)):
+            nodes.append(record['e'])
+            leaf_nodes.append(record['ee'])
+    # -- end
     return nodes, leaf_nodes
 
 def get_node_from_entity(entity):
@@ -204,6 +213,11 @@ def get_random_entity_relation():
     with driver.session() as session:
         #Get all question types & Select one type.
         question_types = session.read_transaction(match_question_nodes)
+        # NEW : delete random question of 'Hobby' --
+        for a in question_types:
+            if a['entity']== 'Hobby':
+                question_types.remove(a)
+        # -- end
         question_type = question_types[np.random.choice(len(question_types), 1)[0]]
 
         try:
@@ -240,8 +254,12 @@ def match_question_nodes(tx):
 def match_init_node_relation(tx, question_type):
     #Find node
     if question_type['entity'] in ["popword", "movie", "drama", "idol_era", "oldsong"]:
-        for record in tx.run("MATCH (n:{}) RETURN n".format(question_type['entity'])):
+        # for record in tx.run("MATCH (n:{}) RETURN n".format(question_type['entity'])):
+        #     node = record['n']
+        # NEW : there are several nodes for "idol_era"&"oldsong", but only last node can be selected. so add rand() to pick it randomly --
+        for record in tx.run("MATCH (n:{}) with n, rand() AS r ORDER BY r RETURN n LIMIT 1".format(question_type['entity'])):
             node = record['n']
+        # -- end
     elif question_type['entity'] in ["Season_Type"]:
         ID = get_today_season_type_id()
 
@@ -253,7 +271,8 @@ def match_init_node_relation(tx, question_type):
 
     #Find relation
     label = list(node.labels)[0]
-    if label in ["FOOD", "GreatMan"]:
+    # NEW : add 'Event' in case
+    if label in ["FOOD", "GreatMan", "Event"]:
         relation = "has_intro_info"
     elif label in ["tour"]:
         relation = "has_tour_info"
@@ -261,9 +280,14 @@ def match_init_node_relation(tx, question_type):
         relation = "has_flower_hint"
     elif label in ["illness"]:
         relation = "has_good_food"
+    # NEW : add 'Body' case - set default relation
+    elif label in ["Body"]:
+        relation = "has_tip_info"
+    # -- end
     elif label in ["popword", "movie", "drama", "idol_era", "oldsong"]:
         relation = None
-    elif lable in ["Season_Type"]:
+    # NEW : modify spelling error [ lable -> label ]
+    elif label in ["Season_Type"]:
         relation = 'has_season_food'
     else:
         print("match_init_node_relation error: ", label, ', ', node)
@@ -295,6 +319,27 @@ def match_answer(tx, node, relation, leaf_node, hint):
     elif leaf_node == None:
         for record in tx.run("MATCH (n) WHERE id(n) = {} RETURN n".format(node.id)):
             answer = record['n'][hint]
+    # NEW : add case --
+    elif relation == 'has_Datetime':
+        name = node['name']
+        tNode, time_nodes = get_node_from_entity_relation(leaf_node, None)
+        if len(time_nodes) == 3:
+            for record in time_nodes:
+                if '년' in record['name']:
+                    year = " " + record['name']
+                elif '월' in record['name']:
+                    month = " " + record['name']
+                elif '일' in record['name']:
+                    day = " " + record['name']
+        else:
+            year = " " + time_nodes[0]['name']
+            month = ""
+            day = ""
+        if checkTrait(name[-1]):
+            answer = name + "은" + year + "{}{}에 일어났어요.".format(month, day)
+        else:
+            answer = name + "는" + year + "{}{}에 일어났어요.".format(month, day)
+    # -- end
     else:
         for record in tx.run("MATCH (n)-[]-(l) WHERE id(n) = {} AND id(l) = {} RETURN n, l".format(node.id, leaf_node.id)):
             if list(node.labels)[0] == 'tour':
@@ -307,6 +352,13 @@ def match_answer(tx, node, relation, leaf_node, hint):
                     answer = name + "은 " + birth + "년에서 " + death + "년까지 살았었어요."
                 else:
                     answer = name + "는 " + birth + "년에서 " + death + "년까지 살았었어요."
+            # NEW : add case --
+            elif relation == 'has_good_food':
+                if checkTrait(leaf_node['name'][-1]):
+                    answer = node['name'] + " 건강에는 " + leaf_node['name'] + '이 좋대요.'
+                else:
+                    answer = node['name'] + " 건강에는 " + leaf_node['name'] + '가 좋대요.'
+            # -- end
             else:
                 answer = record['l']['hint']
     return answer
@@ -438,8 +490,9 @@ def get_next_query(req, history, question_type, node, relation, leaf_node, yon, 
         elif yon == 3:
             ret = move_next_category(history)                         
         else:
-            raise ValueError('yon over the limit in ', question_type['entitiy'])            
-    elif question_type['entity'] in ["GreatMan"]:
+            raise ValueError('yon over the limit in ', question_type['entitiy'])
+    # NEW : add 'Event', 'Body' in case
+    elif question_type['entity'] in ["GreatMan", "Event", "Body"]:
         if yon == 0:
             ret = get_spare_leaf_nodes(req, history, question_type, node, relation, leaf_node, yon, hint)
         elif yon == 1:
@@ -448,7 +501,16 @@ def get_next_query(req, history, question_type, node, relation, leaf_node, yon, 
             #next_question_type, next_node, next_relation, next_leaf_node, next_hint, is_end, is_changed = move_next_category(history)
             ret = move_next_category(history)
         else:
-            raise ValueError('yon over the limit in ', question_type['entitiy'])            
+            raise ValueError('yon over the limit in ', question_type['entitiy'])
+    # NEW : add case --
+    elif question_type['entity'] in ["Hobby"]:
+        if yon==0:
+            ret = get_spare_sibling_nodes(req, history, question_type, node, relation, leaf_node, yon, hint)
+        elif yon==1:
+            ret = move_next_category(history)
+        else:
+            raise ValueError('yon over the limit in ', question_type['entitiy'])
+    # -- end
     else:
         raise ValueError('question_type is not valid: ', question_type['entitiy'])            
 
@@ -514,6 +576,11 @@ def get_spare_leaf_nodes(req, history, question_type, node, relation, leaf_node,
     for ID in history[str(node.id)]:
         if ID in leaf_nodes_ids:
             leaf_nodes_ids.remove(ID)
+    # NEW : because of get_leaf_nodes func, Question_type node also added to dictionary named 'leaf_node_ids'. so add this code to remove question type node in dic --
+    for ID in leaf_nodes_ids:
+        if ID == question_type.id:
+            leaf_nodes_ids.remove(ID)
+    # -- end
 
     if len(leaf_nodes_ids) != 0:
         next_question_type = question_type
@@ -549,8 +616,13 @@ def get_spare_sibling_nodes(req, history, question_type, node, relation, leaf_no
     if len(spare_nodes) != 0:
         next_question_type = question_type
         next_node = spare_nodes[np.random.choice(len(spare_nodes), 1).item()]
-        if question_type['entity'] in ['GreatMan', 'FOOD']:
+        # NEW : add 'Event', 'Hobby' in case
+        if question_type['entity'] in ['GreatMan', 'FOOD', 'Event', 'Hobby']:
             next_relation = 'has_intro_info'
+        # NEW : add 'Body' case --
+        elif question_type['entity'] in ["Body"]:
+            next_relation = 'has_good_food'
+        # -- end
         elif question_type['entity'] in ["flower"]:
             next_relation = 'has_flower_hint'
         elif question_type['entity'] in ["tour"]:
@@ -561,6 +633,7 @@ def get_spare_sibling_nodes(req, history, question_type, node, relation, leaf_no
             next_relation = None
             
         if next_relation != None:
+            # ############################################
             next_leaf_node = get_leaf_node_from_node_relation(next_node, next_relation)
         else:
             next_leaf_node = None
@@ -817,7 +890,18 @@ def get_question_type_from_node_relation(node, relation):
     elif relation == "has_flower_hint":
         entity = "flower"
     elif relation in ["has_prevention", "has_good_food"]:
-        entity = "illness"
+        # NEW : add case --
+        if node['type'] == "Body":
+            entity = "Body"
+        else:
+            # MOVE --
+            entity = "illness"
+            # -- move end
+        # -- end
+    # NEW : add case
+    elif relation == "has_tip_info":
+        entity = "Body"
+    # -- end
     elif relation in ["has_tour_info", "has_tour_reco"]:
         entity = "tour"
     elif relation in ["has_music_info", "has_song_info"]:
@@ -835,8 +919,18 @@ def get_question_type_from_node_relation(node, relation):
             entity = "Season_Type"
         elif node['type'] == "음식":
             entity = "FOOD"
+        # NEW : add case --
+        elif node['type'] == "Event":
+            entity = "Event"
+        elif node['name'] == "취미":
+            entity= "Hobby"
+        # -- end
         else:
             entity = "GreatMan"
+    # NEW : add case --
+    elif relation == "has_Datetime":
+        entity = "Event"
+    # -- end
     elif relation == "has_season_food":
         entity = "Season_Type"
     elif relation == "has_idol_era":

@@ -20,8 +20,9 @@ def random():
         _json['leaf_node_id'] = leaf_node.id
     _json['hint'] = hint
 
-    #Delete node?
-    _json['history'] = {'question_type': [], 'node': [], 'popword': [], 'drama': [], 'movie': [], 'Season_Type': [], 'flower': [], 'GreatMan': [], 'oldsong': [], 'idol_era': [], 'illness': [], 'tour': [], 'FOOD': []}
+    # Delete node?
+    # NEW : add 'Event', 'Body' in history
+    _json['history'] = {'question_type': [], 'node': [], 'popword': [], 'drama': [], 'movie': [], 'Season_Type': [], 'flower': [], 'GreatMan': [], 'oldsong': [], 'idol_era': [], 'illness': [], 'tour': [], 'FOOD': [], 'Event': [], 'Body': []}
     _json['yon'] = 0
 
     if question_type['entity'] in ['Season_Type']:
@@ -29,6 +30,10 @@ def random():
     
     if question_type['entity'] in ["popword", "drama", "oldsong", "idol_era", "Season"]:
         _json['add_q'] = question_type['name'] + "에 대해 알려드릴까요?"
+    # NEW : add case --
+    elif question_type['entity'] in ["Body"]:
+        _json['add_q'] = node['name'] + " 건강 팁을 알려드릴까요?"
+    # -- end
     else:
         _json['add_q'] = node['name'] + "에 대해 알려드릴까요?"
 
@@ -156,6 +161,18 @@ def succesive(req):
                 _json['add_q'] = next_node['name'] + "에 좋은 음식에 대해 {}알려드릴까요?".format(more)
             else:
                 _json['add_q'] = next_node['name'] + " 관련 예방법에 대해서 {}알려드릴까요?".format(more)
+        # NEW : add case --
+        elif next_question_type['entity'] in ["Event"]:
+            if checkTrait(next_node['name'][-1]):
+                _json['add_q'] = next_node['name'] + "이 일어난 시기에 대해서 {}알려드릴까요?".format(more)
+            else:
+                _json['add_q'] = next_node['name'] + "가 일어난 시기에 대해서 {}알려드릴까요?".format(more)
+        elif next_question_type['entity'] in ["Body"]:
+            if next_relation == 'has_good_food':
+                _json['add_q'] = next_node['name'] + " 건강에 좋은 음식에 대해 {}알려드릴까요?".format(more)
+            else:
+                _json['add_q'] = next_node['name'] + " 건강 팁에 대해 {}알려드릴까요?".format(more)
+        # -- end
         else:
             _json['add_q'] = next_node['name'] + "의 " + leaf_node['name'] + " 외에 " + next_leaf_node['name'] + " 대해서 {}알려드릴까요?".format(more)
     #Sibling node
@@ -167,7 +184,11 @@ def succesive(req):
         elif next_question_type['entity'] in ["illness"]:
             _json['add_q'] = "이번에는 " + next_node['name'] + "에 좋은 음식에 대해 알려드릴까요?"
         elif next_question_type['entity'] in ['Season_Type']:
-            _json['add_q'] = "이번에는 " + next_node['name'] + "에 대해 알려드릴까요?"            
+            _json['add_q'] = "이번에는 " + next_node['name'] + "에 대해 알려드릴까요?"
+        # NEW : add case --
+        elif next_question_type['entity'] in ['Body']:
+            _json['add_q'] = "이번에는 " + next_node['name'] + " 건강 팁을 알려드릴까요?"
+        # -- end
         else:
             _json['add_q'] = "이번에는 " + next_node['name'] + "에 대해서 알려드릴까요?"
     #Move next category
@@ -196,8 +217,13 @@ def answer(entity, relation):
 
         if label in ["era"]:
             relation = random.choice(["has_song_info", "has_music_info", "has_idol_era"])
-        elif label in ["GreatMan", "FOOD"]:
+        # NEW : add 'Event', 'Hobby' case
+        elif label in ["GreatMan", "FOOD", "Event", "Hobby"]:
             relation = "has_intro_info"
+        # NEW : add case --
+        elif label in ["Body"]:
+            relation = "has_tip_info"
+        # -- end
         elif node['name'] in ["유행어"]:
             relation = "has_popword_info"
         elif node['name'] in ["영화"]:
@@ -237,7 +263,8 @@ def answer(entity, relation):
     data['question_type'] = question_type['name']
     data['question_type_id'] = question_type.id
 
-    data['history'] = {'question_type': [], 'node': [], 'popword': [], 'drama': [], 'movie': [], 'Season_Type': [], 'flower': [], 'GreatMan': [], 'oldsong': [], 'idol_era': [], 'illness': [], 'tour': [], 'FOOD': []}
+    # NEW : add 'Event', 'Body', 'Hobby' in history
+    data['history'] = {'question_type': [], 'node': [], 'popword': [], 'drama': [], 'movie': [], 'Season_Type': [], 'flower': [], 'GreatMan': [], 'oldsong': [], 'idol_era': [], 'illness': [], 'tour': [], 'FOOD': [], 'Event': [], 'Body': [], 'Hobby': []}
     data['yon'] = 0
 
     ####
@@ -263,7 +290,14 @@ def answer(entity, relation):
             suffix = "이 좋대요"
         else:
             suffix = "가 좋대요"
-        answer = entity + "에는 " + leaf_node['name'] + suffix
+        # NEW : add case --
+        if node['type'] == 'Body':
+            answer = entity + " 건강에는 " + leaf_node['name'] + suffix
+        else:
+            # MOVE
+            answer = entity + "에는 " + leaf_node['name'] + suffix
+            # -- move end
+        # -- end
     elif relation in ["has_season_food"]:
         if checkTrait(leaf_node['name'][-1]):
             suffix = "이 있어요"
@@ -297,7 +331,26 @@ def answer(entity, relation):
                     answer = node['name'] + "은 " + leaf_node['birth'] + "년도에 태어나서 " + leaf_node['death'] + "년도까지 살았대요"
                 else:
                     answer = node['name'] + "는 " + leaf_node['birth'] + "년도에 태어나서 " + leaf_node['death'] + "년도까지 살았대요"
-
+    # NEW : add case --
+    elif relation in ["has_Datetime"]:
+        tNode, time_nodes = neo4j_query.get_node_from_entity_relation(leaf_node, None)
+        if len(time_nodes) == 3:
+            for record in time_nodes:
+                if '년' in record['name']:
+                    year = " " + record['name']
+                elif '월' in record['name']:
+                    month = " " + record['name']
+                elif '일' in record['name']:
+                    day = " " + record['name']
+        else:
+            year = " " + time_nodes[0]['name']
+            month = ""
+            day = ""
+        if checkTrait(entity[-1]):
+            answer = entity + "은" + year + "{}{}에 일어났어요.".format(month, day)
+        else:
+            answer = entity + "는" + year + "{}{}에 일어났어요.".format(month, day)
+    # -- end
     else:
         answer = leaf_node['hint']
         
